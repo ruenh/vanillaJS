@@ -252,14 +252,13 @@
           // Сохраняем в Supabase (как раньше)
           await saveNumber(rand);
 
-          // Дополнительно шлем HTTP к твоему Python-боту
-          await fetch("http://178.20.211.213:5000/notify", {
+          const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+          const userId = tgUser.id;
+
+          fetch("http://178.20.211.213:5000/notify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              user_id: user.id,
-              number: rand,
-            }),
+            body: JSON.stringify({ user_id: userId, number: rand }),
           });
 
           tg.showAlert("🎉 Ваше число: " + rand + "!");
