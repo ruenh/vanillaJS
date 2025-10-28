@@ -1,162 +1,260 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Telegram Mini Apps Vanilla JS Sample App</title>
-    <style>
-        body {
-            --bg-color: var(--tg-theme-bg-color);
-            font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--tg-theme-text-color);
-            margin: 48px 24px;
-            padding: 0;
-            color-scheme: var(--tg-color-scheme);
-        }
-
-        a {
-            color: var(--tg-theme-link-color);
-        }
-        #viewport {
-            position: fixed;
-            left: 0;
-            right: 0;
-            top: 0;
-            height: var(--tg-viewport-stable-height, 100vh);
-            pointer-events: none;
-            transition: all .2s ease;
-        }
-        #viewport:after {
-            content: '';
-            display: block;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            border-width: 4px;
-            border-style: solid;
-            border-image: linear-gradient(45deg, rgba(64, 224, 208, .5), rgba(173, 255, 47, .5)) 1;
-        }
-
-        #viewport-params-size,
-        #viewport-params-expand {
-            content: attr(text);
-            position: absolute;
-            display: inline-block;
-            background: var(--tg-theme-link-color, rgb(64, 224, 208));
-            right: 4px;
-            left: auto;
-            font-size: 8px;
-            padding: 4px;
-            vertical-align: top;
-        }
-        #viewport-params-size {
-            top: 4px;
-        }
-        #viewport-params-expand {
-            top: 30px;
-        }
-    </style>
-</head>
-
-<body>
-    <main>
-        <div align="center">
-            <a href="https://ton.org/"><img width="48" src="./assets/tapps.png" alt="logo of telegram web apps"></a>
-        </div>
-        <h1>Modals</h1>
-        <button onclick="Telegram.WebApp.showAlert('Hello World!');">Launch Alert</button>
-        <button onclick="showPopup();">Launch Popup</button>
-
-        <h1>Links</h1>
-        <ul>
-            <li>
-                <a href="javascript:Telegram.WebApp.openTelegramLink('https://t.me/trendingapps');">Open link within Telegram</a>
-            </li>
-            <li>
-                <a href="javascript:Telegram.WebApp.openLink('https://ton.org/');">Open link in external browser</a>
-            </li>
-            <li>
-                <a href="javascript:Telegram.WebApp.openLink('https://telegra.ph/api',{try_instant_view:true});">Open link inside Telegram webview</a>
-            </li>
-        </ul>
-
-        <h1>Buttons</h1>
-        <button onclick="Telegram.WebApp.expand();">Expand Webview</button>
-        <button onclick="toggleMainButton();">Toggle Main Button</button>
-    </main>
-    <div id="viewport"></div>
-    <div id="viewport-params-size"></div>
-    <div id="viewport-params-expand"></div>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Генератор чисел | Telegram Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: var(--tg-theme-bg-color, #ffffff);
+        color: var(--tg-theme-text-color, #000000);
+        margin: 0;
+        padding: 0 0 16px 0;
+        color-scheme: var(--tg-color-scheme);
+      }
+      .container {
+        max-width: 480px;
+        margin: auto;
+        padding: 18px 10px 0 10px;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 22px;
+        background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .avatar,
+      .avatar-placeholder {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #eee;
+        font-size: 22px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .avatar-placeholder {
+        background: linear-gradient(135deg, #3390ec 0%, #40a7e3 100%);
+      }
+      .user-info .user-name {
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .user-info .user-stats {
+        font-size: 14px;
+        opacity: 0.7;
+      }
+      .main-card {
+        background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        border-radius: 16px;
+        padding: 22px;
+        margin-bottom: 18px;
+      }
+      .number-display {
+        font-size: 56px;
+        font-weight: bold;
+        color: var(--tg-theme-link-color, #3390ec);
+        margin: 10px 0;
+      }
+      .generate-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 11px;
+        border: none;
+        background: var(--tg-theme-button-color, #3390ec);
+        color: var(--tg-theme-button-text-color, #fff);
+        margin-top: 10px;
+        cursor: pointer;
+      }
+      .generate-btn:active {
+        transform: scale(0.97);
+      }
+      .history-section {
+        margin-top: 16px;
+      }
+      .history-title {
+        font-size: 17px;
+        margin-bottom: 6px;
+      }
+      .history-list {
+        background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        border-radius: 11px;
+        padding: 12px;
+        max-height: 180px;
+        overflow-y: auto;
+      }
+      .history-item {
+        border-bottom: 1px solid #e0e0e0;
+        padding: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .history-item:last-child {
+        border-bottom: none;
+      }
+      .empty-state {
+        text-align: center;
+        opacity: 0.55;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img id="userAvatar" class="avatar" src="" style="display: none" />
+        <div
+          id="avatarPlaceholder"
+          class="avatar-placeholder"
+          style="display: none"
+        ></div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Загрузка...</div>
+          <div class="user-stats" id="userStats">Загружаем...</div>
+        </div>
+      </div>
+
+      <div class="main-card">
+        <h2>🎲 Генератор чисел</h2>
+        <div class="number-display" id="numberDisplay">?</div>
+        <button class="generate-btn" id="generateBtn">
+          Сгенерировать число
+        </button>
+      </div>
+
+      <div class="history-section">
+        <div class="history-title">📈 История генераций</div>
+        <div class="history-list" id="historyList">
+          <div class="empty-state">Пока нет сгенерированных чисел</div>
+        </div>
+      </div>
+    </div>
+
     <script>
-        // Init TWA
-        Telegram.WebApp.ready();
+      const SUPABASE_URL = "https://vnpwsfzyzrpojzehvmae.supabase.co"; // твой Supabase URL
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZucHdzZnp5enJwb2p6ZWh2bWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0MDIzMTMsImV4cCI6MjA3Njk3ODMxM30.jyvB4SlNPimetrWCqYg6x5lO09dTIT9TOtTSKMX6VgA";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.documentElement.className = Telegram.WebApp.colorScheme;
-        });
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
 
-        // Show main button
-        Telegram.WebApp.MainButton.setParams({
-            text: 'Main Button'
-        });
-        Telegram.WebApp.MainButton.onClick(function () {
-            Telegram.WebApp.showAlert('Main Button was clicked')
-        });	
-        Telegram.WebApp.MainButton.show();
+      const user = tg.initDataUnsafe?.user;
+      let userHistory = [];
 
-        // Function to call showPopup API
-        function showPopup() {
-            Telegram.WebApp.showPopup({
-                title: 'Title',
-                message: 'Some message',
-                buttons: [
-                    {id: 'link', type: 'default', text: 'Open ton.org'},
-                    {type: 'cancel'},
-                ]
-            }, function(btn) {
-                if (btn === 'link') {
-                    Telegram.WebApp.openLink('https://ton.org/');
-                }
-            });
-        };
-
-        // Function to toggle main TWA button
-        function toggleMainButton() {
-            if (Telegram.WebApp.MainButton.isVisible) {
-                Telegram.WebApp.MainButton.hide();
-            } else {
-                Telegram.WebApp.MainButton.show();
-            }
-        };
-
-        function setViewportData() {
-            var sizeEl = document.getElementById('viewport-params-size');
-            sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
-                'height: ' + Telegram.WebApp.viewportStableHeight;
-
-            var expandEl = document.querySelector('#viewport-params-expand');
-            expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
+      function showAvatar() {
+        const avatar = document.getElementById("userAvatar");
+        const placeholder = document.getElementById("avatarPlaceholder");
+        if (user && user.photo_url) {
+          avatar.src = user.photo_url;
+          avatar.style.display = "block";
+          placeholder.style.display = "none";
+        } else if (user) {
+          placeholder.textContent = (user.first_name ||
+            user.username ||
+            "U")[0].toUpperCase();
+          placeholder.style.display = "flex";
+          avatar.style.display = "none";
+        } else {
+          placeholder.textContent = "U";
+          placeholder.style.display = "flex";
         }
+      }
 
-        Telegram.WebApp.setHeaderColor('secondary_bg_color');
+      async function loadUserData() {
+        if (!user) return;
+        const statsEl = document.getElementById("userStats");
+        const listEl = document.getElementById("historyList");
+        statsEl.textContent = "Загрузка статистики...";
+        listEl.innerHTML = '<div class="empty-state">Загрузка...</div>';
+        let { data, error } = await supabase
+          .from("numbers")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (error) {
+          statsEl.textContent = "Ошибка загрузки";
+          listEl.innerHTML = '<div class="empty-state">Ошибка загрузки</div>';
+          return;
+        }
+        userHistory = data || [];
+        statsEl.textContent =
+          "Всего сгенерировано: " + (userHistory.length || 0);
+        renderHistory();
+      }
 
-        setViewportData();
-        Telegram.WebApp.onEvent('viewportChanged', setViewportData);
+      function renderHistory() {
+        const listEl = document.getElementById("historyList");
+        if (!userHistory.length) {
+          listEl.innerHTML =
+            '<div class="empty-state">Пока нет сгенерированных чисел</div>';
+          return;
+        }
+        listEl.innerHTML = userHistory
+          .map((item) => {
+            const date = new Date(item.created_at);
+            const timeStr = date.toLocaleString("ru-RU", {
+              day: "2-digit",
+              month: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            return `<div class="history-item">
+            <span><b>${item.number}</b></span>
+            <span style="font-size:12px;opacity:0.67">${timeStr}</span>
+        </div>`;
+          })
+          .join("");
+      }
 
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
-        });
+      async function saveNumber(number) {
+        if (!user) return;
+        let { error } = await supabase.from("numbers").insert([
+          {
+            user_id: user.id,
+            username: user.username || null,
+            first_name: user.first_name || "",
+            number: number,
+          },
+        ]);
+        if (error) throw error;
+      }
 
+      document.getElementById("userName").textContent =
+        user?.first_name || user?.username || "Пользователь";
+      showAvatar();
+      loadUserData();
+
+      document.getElementById("generateBtn").onclick = async () => {
+        const btn = document.getElementById("generateBtn");
+        btn.disabled = true;
+        const rand = Math.floor(Math.random() * 100) + 1;
+        document.getElementById("numberDisplay").textContent = rand;
+        try {
+          await saveNumber(rand);
+          tg.showAlert("🎉 Ваше число: " + rand + "!");
+          await loadUserData();
+        } catch (e) {
+          tg.showAlert("❌ Ошибка сохранения. Попробуйте снова.");
+        }
+        btn.disabled = false;
+      };
     </script>
-
-    <!-- Eruda is console for mobile browsers -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-</body>
+  </body>
 </html>
